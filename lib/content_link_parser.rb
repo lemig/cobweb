@@ -1,4 +1,5 @@
 require "nokogiri"
+require "active_support/core_ext/string"
 
 # ContentLinkParser extracts links from HTML content and assigns them to a hash based on the location the link was found.  The has contents can be configured in options, however, defaults to a pretty sensible default.
 # Links can also be returned regardless of the location they were located and can be filtered by the scheme
@@ -33,13 +34,21 @@ class ContentLinkParser
   end
  
   # Returns a hash with arrays of links
-  def link_data
+  def original_link_data
     data = {}
     @options[:tags].keys.each do |key|
       data[key.to_sym] = self.instance_eval(key.to_s)
     end
     data
-  end  
+  end
+
+  def custom_link_data
+    { links: host_parser.parse_links(@doc) } if host_parser
+  end
+
+  def link_data
+    custom_link_data || original_link_data
+  end
   
   # Returns an array of all absolutized links, specify :valid_schemes in options to limit to certain schemes.  Also filters repeating folders (ie if the crawler got in a link loop situation)
   def all_links(options = {})    
@@ -93,5 +102,13 @@ class ContentLinkParser
     end
   end
 
+  def host_parser
+    host = URI(@url).host
+    parser = host.parameterize.underscore.classify.constantize
+    raise unless parser.respond_to?(:parse_links)
+    parser
+  rescue
+    nil
+  end
 end
 

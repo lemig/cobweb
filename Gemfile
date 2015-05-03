@@ -17,6 +17,7 @@ gem 'namespaced_redis', ">=1.0.2"
 
 gem 'redis-namespace'
 gem 'slop', "~>3.4.6"
+gem "activesupport"
 
 group :test do
   gem 'rspec'
