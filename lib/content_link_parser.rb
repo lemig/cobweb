@@ -104,11 +104,8 @@ class ContentLinkParser
 
   def host_parser
     host = URI(@url).host
-    parser = host.parameterize.underscore.classify.constantize
-    raise unless parser.respond_to?(:parse_links)
-    parser
-  rescue
-    nil
+    parser = host.parameterize.underscore.classify.safe_constantize
+    parser.respond_to?(:parse_links) ? parser : nil
   end
 end
 
